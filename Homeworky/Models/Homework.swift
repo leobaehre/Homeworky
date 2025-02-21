@@ -7,9 +7,9 @@
 
 import Foundation
 
-struct Homework: Identifiable {
-    let id = UUID()
-    var subject: String
+struct Homework: Identifiable, Codable {
+    var id = UUID()
+    var subject: Subject
     var title: String
     var dueDate: Date
     var isCompleted: Bool

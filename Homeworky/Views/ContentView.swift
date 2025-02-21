@@ -9,53 +9,50 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var viewModel = HomeworkViewModel()
-        @State private var showingAddHomework = false
-        
-        var body: some View {
-            NavigationStack {
-                List {
-                    ForEach(viewModel.homeworkList) { homework in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(homework.title)
-                                    .font(.headline)
-                                Text(homework.subject)
-                                    .font(.subheadline)
-                                Text("Due: \(homework.dueDate, formatter: dateFormatter)")
-                                    .font(.caption)
-                            }
-                            Spacer()
-                            Button(action: {
-                                viewModel.toggleCompletion(for: homework)
-                            }) {
-                                Image(systemName: homework.isCompleted ? "checkmark.circle.fill" : "circle")
-                            }
-                        }
-                    }
-                    .onDelete(perform: viewModel.deleteHomework)
-                }
-                .navigationTitle("Homework Tracker")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            showingAddHomework = true
-                        }) {
-                            Image(systemName: "plus")
-                        }
+    @State private var selectedDate = Date()
+    @State private var isAddingHomework = false
+
+
+    var body: some View {
+        NavigationStack {
+            VStack {
+                CalendarView(selectedDate: $selectedDate, viewModel: viewModel)
+                
+                HomeworkListView(viewModel: viewModel, selectedDate: $selectedDate)
+            }
+            .background(.gray.opacity(0.1))
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        let today = Date()
+                        selectedDate = today
+                    }) {
+                        Text("Today")
+                            .font(.title2)
                     }
                 }
-                .sheet(isPresented: $showingAddHomework) {
-                    AddHomeworkView(viewModel: viewModel)
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        isAddingHomework = true
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                    }
                 }
             }
+            .sheet(isPresented: $isAddingHomework) {
+                AddHomeworkView(viewModel: viewModel, selectedDate: selectedDate)
+            }
+//            .gesture(DragGesture().onEnded { value in
+//                if value.translation.width < -100 {
+//                    selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate)!
+//                } else if value.translation.width > 100 {
+//                    selectedDate = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate)!
+//                }
+//            })
         }
+    }
 }
-
-let dateFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    return formatter
-}()
 
 #Preview {
     ContentView()

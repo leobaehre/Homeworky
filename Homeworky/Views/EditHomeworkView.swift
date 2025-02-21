@@ -7,41 +7,56 @@
 
 import SwiftUI
 
-struct AddHomeworkView: View {
+struct EditHomeworkView: View {
+    var homework: Homework
+    
     @ObservedObject var viewModel: HomeworkViewModel
     @Environment(\.dismiss) var dismiss
     
     let subjects: [Subject] = Config.subjects
 
-    @State private var selectedSubject = "Honors Pre-Calculus"
-    @State private var title = ""
+    @State private var selectedSubject: String
+    @State private var title: String
     @State private var dueDate: Date
+    @State private var isCompleted: Bool
 
-    init(viewModel: HomeworkViewModel, selectedDate: Date) {
+    init(homework: Homework, viewModel: HomeworkViewModel) {
+        self.homework = homework
         self.viewModel = viewModel
-        _dueDate = State(initialValue: selectedDate)
+        _selectedSubject = State(initialValue: homework.subject.name)
+        _title = State(initialValue: homework.title)
+        _dueDate = State(initialValue: homework.dueDate)
+        _isCompleted = State(initialValue: homework.isCompleted)
     }
 
     var body: some View {
         NavigationStack {
             Form {
                 Picker("Subject", selection: $selectedSubject) {
-                    ForEach(subjects, id: \ .name) { subject in
+                    ForEach(subjects, id: \.name) { subject in
                         Text(subject.name).foregroundColor(subject.color)
                     }
                 }
                 TextField("Title", text: $title)
                 DatePicker("Due Date", selection: $dueDate, displayedComponents: .date)
+                Toggle("Completed", isOn: $isCompleted)
             }
-            .navigationTitle("Add Homework")
+            .navigationTitle("Edit Homework")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Add") {
+                    Button("Save") {
                         if let subject = subjects.first(where: { $0.name == selectedSubject }) {
-                            viewModel.addHomework(subject: subject, title: title, dueDate: dueDate)
+                            let updatedHomework = Homework(
+                                id: homework.id,
+                                subject: subject,
+                                title: title,
+                                dueDate: dueDate,
+                                isCompleted: isCompleted
+                            )
+                            viewModel.updateHomework(updatedHomework)
                             dismiss()
                         }
                     }
